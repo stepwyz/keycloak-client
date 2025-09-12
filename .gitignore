@@ -54,3 +54,7 @@ build-iPhoneSimulator/
 
 # Used by RuboCop. Remote config files pulled in from inherit_from directive.
 # .rubocop-https?--*
+/lib/keycloak/openapi-schema.json
+.DS_Store
+/lib/keycloak-client/openapi-schema.json
+/lib/keycloak-client/default_realm.json
