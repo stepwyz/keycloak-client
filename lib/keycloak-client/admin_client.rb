@@ -13,7 +13,7 @@ module KeycloakClient
     include Resources::ClientScopes
 
     def initialize(realm: nil, username: nil, password: nil)
-      @realm = realm || KeycloakClient.config.default_realm
+      @realm = realm || KeycloakClient.config.realm
       @realm_stack = [ @realm ]
       @username = username
       @password = password
@@ -40,8 +40,8 @@ module KeycloakClient
         else
           req.body = URI.encode_www_form({
             grant_type: 'client_credentials',
-            client_id: KeycloakClient.config.default_client_id,
-            client_secret: KeycloakClient.config.default_client_secret
+            client_id: KeycloakClient.config.client_id,
+            client_secret: KeycloakClient.config.client_secret
           })
         end
       end
