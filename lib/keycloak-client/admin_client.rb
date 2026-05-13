@@ -33,7 +33,7 @@ module KeycloakClient
         if username.present? && password.present?
           req.body = URI.encode_www_form({
             grant_type: 'password',
-            client_id: 'admin-cli',
+            client_id: 'admin-cli', # TODO: Should be configurable
             username: username,
             password: password
           })

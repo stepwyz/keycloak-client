@@ -32,6 +32,7 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
+    dotenv (3.2.0)
     drb (2.2.3)
     erb (5.0.2)
     faraday (2.13.4)
@@ -140,6 +141,7 @@ PLATFORMS
 
 DEPENDENCIES
   debug
+  dotenv
   keycloak-client!
   rake (~> 13.0)
   rbs

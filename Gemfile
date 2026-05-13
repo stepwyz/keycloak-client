@@ -7,6 +7,7 @@ gemspec
 
 gem 'debug', platforms: %i[ mri ], require: 'debug/prelude'
 
+gem 'dotenv'
 gem 'rbs'
 gem 'rake', '~> 13.0'
 gem 'rspec', '~> 3.0'

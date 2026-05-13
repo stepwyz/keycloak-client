@@ -1,27 +1,38 @@
 # frozen_string_literal: true
 
 require "debug/prelude"
+require "dotenv"
+Dotenv.load('.env.local', '.env')
+
 require "keycloak-client"
 
 KeycloakClient.root.glob('spec/support/**/*.rb').sort.each { |f| require f }
 
 KeycloakClient.configure do |config|
-  config.host = 'http://localhost:8080'
-  config.realm = 'master' # Need to create a new realm for testing
-  config.client_id = 'admin_cli' # Need to create a new client for testing
-  config.client_secret = 'admin' # Need to create a new client for testing
+  config.host = ENV.fetch('KEYCLOAK_HOST', 'http://localhost:8080')
+  config.realm = ENV.fetch('KEYCLOAK_REALM', 'master')
+  config.client_id = ENV.fetch('KEYCLOAK_CLIENT_ID', 'admin-cli')
+  config.client_secret = ENV.fetch('KEYCLOAK_CLIENT_SECRET', '')
 end
 
 RSpec.configure do |config|
   config.include ExpectationsHelper
 
-  # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
-
-  # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  config.filter_run_when_matching :focus
+
+  # Unit specs only by default. Integration specs require a live Keycloak —
+  # set KC_LIVE=1 (or run `rake integration`) to include them. The bootstrap
+  # provisions a fresh test realm before the suite runs.
+  if ENV['KC_LIVE'] == '1'
+    config.before(:suite) { KeycloakBootstrap.run! }
+  else
+    config.filter_run_excluding :integration
   end
 end

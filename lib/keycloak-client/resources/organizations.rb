@@ -35,7 +35,7 @@ module KeycloakClient
       end
 
       def invite_existing_user(organization_id, user_id)
-        post("/organizations/#{organization_id}/members/#{user_id}/invite-existing-user")
+        form_post("/organizations/#{organization_id}/members/invite-existing-user", { id: user_id })
       end
 
       # Note: This uses a form post instead of a typcial JSON body
@@ -55,8 +55,8 @@ module KeycloakClient
         get("/organizations/#{organization_id}/members/#{member_id}")
       end
 
-      def get_organization_memberships(organization_id, user_id)
-        get("/organizations/#{organization_id}/members/#{user_id}/memberships")
+      def get_user_organizations(user_id)
+        get("/organizations/members/#{user_id}/organizations")
       end
     end
   end

@@ -25,7 +25,7 @@ services:
     depends_on:
       - keycloak_db
     ports:
-      - 8080:8080
+      - ${KEYCLOAK_HOST_PORT:-8080}:8080
 
   keycloak_db:
     image: postgres:15

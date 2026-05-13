@@ -61,7 +61,7 @@ module KeycloakClient
         delete("/clients/#{client_uuid}/nodes/#{node}")
       end
 
-      def get_client_session_stats(client_uuid)
+      def get_client_session_count(client_uuid)
         get("/clients/#{client_uuid}/session-count")
       end
     end

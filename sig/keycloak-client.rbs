@@ -82,11 +82,7 @@ module KeycloakClient
 
     @client_secret: untyped
 
-    @default_realm: untyped
-
-    @default_client_id: untyped
-
-    @default_client_secret: untyped
+    @realm: untyped
 
     attr_accessor host: untyped
 
@@ -94,11 +90,7 @@ module KeycloakClient
 
     attr_accessor client_secret: untyped
 
-    attr_accessor default_realm: untyped
-
-    attr_accessor default_client_id: untyped
-
-    attr_accessor default_client_secret: untyped
+    attr_accessor realm: untyped
 
     def initialize: () -> void
   end
@@ -165,7 +157,7 @@ module KeycloakClient
 
       def unregister_client_cluster_node: (untyped client_uuid, untyped node) -> untyped
 
-      def get_client_session_stats: (untyped client_uuid) -> untyped
+      def get_client_session_count: (untyped client_uuid) -> untyped
     end
   end
 end
@@ -227,7 +219,7 @@ module KeycloakClient
 
       def get_organization_member: (untyped organization_id, untyped member_id) -> untyped
 
-      def get_organization_memberships: (untyped organization_id, untyped user_id) -> untyped
+      def get_user_organizations: (untyped user_id) -> untyped
     end
   end
 end
@@ -253,11 +245,15 @@ end
 module KeycloakClient
   module Resources
     module Roles
-      # Get realm-level roles
       def realm_roles: () -> untyped
 
-      # Get a specific realm-level role by name
-      def get: (untyped name) -> untyped
+      def get_realm_role: (untyped name) -> untyped
+
+      def create_realm_role: (untyped role_representation) -> untyped
+
+      def update_realm_role: (untyped name, untyped role_representation) -> untyped
+
+      def delete_realm_role: (untyped name) -> untyped
 
       def client_roles: (untyped client_id) -> untyped
 
@@ -265,29 +261,15 @@ module KeycloakClient
 
       def assign_client_role: (untyped role, client_id: untyped, user_id: untyped) -> untyped
 
-      # Create a new realm-level role
-      def create: (untyped role_representation) -> untyped
+      def get_realm_role_composites: (untyped name) -> untyped
 
-      # Update a realm-level role by name
-      def update: (untyped name, untyped role_representation) -> untyped
+      def add_realm_role_composites: (untyped name, untyped roles) -> untyped
 
-      # Delete a realm-level role by name
-      def delete: (untyped name) -> untyped
+      def delete_realm_role_composites: (untyped name, untyped roles) -> untyped
 
-      # Get composite roles for a realm-level role
-      def get_composites: (untyped name) -> untyped
+      def get_realm_role_realm_composites: (untyped name) -> untyped
 
-      # Add composite roles to a realm-level role
-      def add_composites: (untyped name, untyped roles) -> untyped
-
-      # Remove composite roles from a realm-level role
-      def delete_composites: (untyped name, untyped roles) -> untyped
-
-      # Get realm-level roles in a role's composite
-      def get_realm_composites: (untyped name) -> untyped
-
-      # Get client-level roles for a client in a role's composite
-      def get_client_composites: (untyped name, untyped client_id) -> untyped
+      def get_realm_role_client_composites: (untyped name, untyped client_id) -> untyped
     end
   end
 end

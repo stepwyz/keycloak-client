@@ -58,3 +58,5 @@ build-iPhoneSimulator/
 .DS_Store
 /lib/keycloak-client/openapi-schema.json
 /lib/keycloak-client/default_realm.json
+/.env
+/.env.local
