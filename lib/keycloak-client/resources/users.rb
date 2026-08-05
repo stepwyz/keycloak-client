@@ -14,7 +14,7 @@ module KeycloakClient
       end
 
       def create_user(user)
-        post('/users', user)
+        create('/users', user)
       end
 
       def delete_user(user_id)

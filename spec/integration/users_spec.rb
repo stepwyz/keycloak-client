@@ -5,7 +5,7 @@ RSpec.describe 'live: Users resource', :integration do
 
   let!(:user) do
     username = "user-#{SecureRandom.hex(4)}"
-    admin.create_user(
+    id = admin.create_user(
       username: username,
       enabled: true,
       email: "#{username}@example.com",
@@ -13,10 +13,21 @@ RSpec.describe 'live: Users resource', :integration do
       lastName: 'Last',
       credentials: [{ type: 'password', value: 'initial-password', temporary: false }]
     )
-    admin.users(username: username, exact: true).first
+    admin.user(id)
   end
 
   after { admin.delete_user(user[:id]) rescue nil }
+
+  describe 'the id returned by create_user' do
+    let!(:created_id) { admin.create_user(username: "user-#{SecureRandom.hex(4)}", enabled: true) }
+
+    after { admin.delete_user(created_id) rescue nil }
+
+    it 'is the new user id from the Location header' do
+      expect(created_id).to match(/\A[0-9a-f-]{36}\z/)
+      expect(admin.user(created_id)[:id]).to eq(created_id)
+    end
+  end
 
   it 'creates, reads, updates, and deletes a user' do
     expect(user[:username]).to start_with('user-')

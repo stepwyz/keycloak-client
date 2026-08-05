@@ -65,23 +65,21 @@ when the token is within 30 seconds of expiry, so you rarely need to call
 `authorize!` yourself.
 
 ```ruby
-admin.create_user(username: 'ada', email: 'ada@example.com', enabled: true)
-
-# Keycloak returns the new id in a Location header the client doesn't expose,
-# so read the record back to get it.
-user = admin.users(username: 'ada', exact: true).first
-admin.send_verify_email(user[:id])
+# Keycloak answers a create with an empty body and the new id in a Location
+# header, so `create_user` returns that id.
+user_id = admin.create_user(username: 'ada', email: 'ada@example.com', enabled: true)
+admin.send_verify_email(user_id)
 
 admin.groups
-admin.add_group_member(group_id, user[:id])
+admin.add_group_member(group_id, user_id)
 
 admin.clients
-admin.assign_client_role(role, client_id: client_uuid, user_id: user[:id])
+admin.assign_client_role(role, client_id: client_uuid, user_id: user_id)
 ```
 
 Responses are parsed JSON with symbolized keys — hashes and arrays, not wrapper
-objects. Endpoints that return no body (creates, updates, deletes) give you an
-empty string.
+objects. Endpoints that return no body (updates, deletes) give you an empty
+string.
 
 ### Working across realms
 
