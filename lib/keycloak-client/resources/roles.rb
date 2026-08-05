@@ -42,7 +42,7 @@ module KeycloakClient
       end
 
       def delete_realm_role_composites(name, roles)
-        delete("/roles/#{name}/composites", roles)
+        delete("/roles/#{name}/composites", {}, {}, body: roles)
       end
 
       def get_realm_role_realm_composites(name)

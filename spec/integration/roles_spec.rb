@@ -24,6 +24,47 @@ RSpec.describe 'live: Roles resource', :integration do
     expect(role_names).to include('realm-admin')
   end
 
+  it 'updates a realm role' do
+    name = "role-#{SecureRandom.hex(4)}"
+    admin.create_realm_role(name: name, description: 'before')
+
+    admin.update_realm_role(name, admin.get_realm_role(name).merge(description: 'after'))
+    expect(admin.get_realm_role(name)[:description]).to eq('after')
+  ensure
+    admin.delete_realm_role(name) rescue nil
+  end
+
+  describe 'composites' do
+    let!(:parent) { "role-#{SecureRandom.hex(4)}" }
+    let!(:child) { "role-#{SecureRandom.hex(4)}" }
+
+    before do
+      admin.create_realm_role(name: parent)
+      admin.create_realm_role(name: child)
+    end
+
+    after do
+      admin.delete_realm_role(parent) rescue nil
+      admin.delete_realm_role(child) rescue nil
+    end
+
+    it 'adds, lists, and removes a realm composite' do
+      child_role = admin.get_realm_role(child)
+
+      admin.add_realm_role_composites(parent, [child_role])
+      expect(admin.get_realm_role_composites(parent).map { |r| r[:name] }).to eq([child])
+      expect(admin.get_realm_role_realm_composites(parent).map { |r| r[:name] }).to eq([child])
+
+      admin.delete_realm_role_composites(parent, [child_role])
+      expect(admin.get_realm_role_composites(parent)).to eq([])
+    end
+
+    it 'lists client composites for a role that has none' do
+      realm_mgmt = admin.get('/clients', { clientId: 'realm-management' }).first
+      expect(admin.get_realm_role_client_composites(parent, realm_mgmt[:id])).to eq([])
+    end
+  end
+
   it 'assigns a client role to a user' do
     username = "rolee-#{SecureRandom.hex(4)}"
     admin.create_user(username: username, enabled: true)

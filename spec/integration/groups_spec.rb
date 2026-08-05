@@ -17,6 +17,10 @@ RSpec.describe 'live: Groups resource', :integration do
     expect { admin.delete_group(found[:id]) }.to_not raise_error
   end
 
+  it 'returns nil for a path that matches no group' do
+    expect(admin.group_by_path("/missing-#{SecureRandom.hex(4)}")).to be_nil
+  end
+
   it 'manages group membership for a user' do
     name = "members-#{SecureRandom.hex(4)}"
     admin.create_group({ name: name })
@@ -36,6 +40,31 @@ RSpec.describe 'live: Groups resource', :integration do
     admin.delete_group(group[:id]) if group
   end
 
+  it 'returns the group count' do
+    expect(admin.group_count[:count]).to be_a(Integer)
+  end
+
+  it 'reads and updates management permissions for a group' do
+    name = "perms-#{SecureRandom.hex(4)}"
+    admin.create_group({ name: name })
+    group = admin.group_by_path("/#{name}")
+
+    begin
+      perms = admin.group_management_permissions(group[:id])
+    rescue Faraday::ServerError => e
+      # /management/permissions requires Keycloak's admin-fine-grained-authz
+      # preview feature, which is off by default. Skip when unavailable.
+      skip 'admin-fine-grained-authz feature not enabled on this Keycloak' if e.response[:status] == 501
+      raise
+    end
+
+    expect(perms).to have_key(:enabled)
+    updated = admin.update_group_management_permissions(group[:id], enabled: true)
+    expect(updated[:enabled]).to eq(true)
+  ensure
+    admin.delete_group(group[:id]) if group
+  end
+
   it 'creates nested subgroups' do
     parent_name = "parent-#{SecureRandom.hex(4)}"
     child_name  = "child-#{SecureRandom.hex(4)}"
@@ -44,6 +73,20 @@ RSpec.describe 'live: Groups resource', :integration do
 
     admin.create_group({ name: child_name }, parent_id: parent[:id])
     expect(admin.subgroups(parent[:id]).map { |g| g[:name] }).to include(child_name)
+  ensure
+    admin.delete_group(parent[:id]) if parent
+  end
+
+  it 'walks a nested path to find a subgroup' do
+    parent_name = "parent-#{SecureRandom.hex(4)}"
+    child_name  = "child-#{SecureRandom.hex(4)}"
+    admin.create_group({ name: parent_name })
+    parent = admin.group_by_path("/#{parent_name}")
+    admin.create_group({ name: child_name }, parent_id: parent[:id])
+
+    found = admin.group_by_path("/#{parent_name}/#{child_name}")
+    expect(found[:name]).to eq(child_name)
+    expect(found[:parentId]).to eq(parent[:id])
   ensure
     admin.delete_group(parent[:id]) if parent
   end

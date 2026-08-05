@@ -58,6 +58,28 @@ module KeycloakClient
       def get_user_organizations(user_id)
         get("/organizations/members/#{user_id}/organizations")
       end
+
+      # Same data as #get_user_organizations, but scoped under an org the
+      # member already belongs to. Useful when navigating from an org view.
+      def get_organization_member_organizations(organization_id, member_id)
+        get("/organizations/#{organization_id}/members/#{member_id}/organizations")
+      end
+
+      def organization_identity_providers(organization_id)
+        get("/organizations/#{organization_id}/identity-providers")
+      end
+
+      def organization_identity_provider(organization_id, alias_name)
+        get("/organizations/#{organization_id}/identity-providers/#{alias_name}")
+      end
+
+      def add_organization_identity_provider(organization_id, alias_name)
+        post("/organizations/#{organization_id}/identity-providers", alias_name.to_json)
+      end
+
+      def remove_organization_identity_provider(organization_id, alias_name)
+        delete("/organizations/#{organization_id}/identity-providers/#{alias_name}")
+      end
     end
   end
 end

@@ -5,6 +5,10 @@ module KeycloakClient
         get('/groups', params)
       end
 
+      def group_count(params = {})
+        get('/groups/count', params)
+      end
+
       def subgroups(group_id)
         get("/groups/#{group_id}/children")
       end
@@ -58,6 +62,14 @@ module KeycloakClient
 
       def remove_group_member(group_id, user_id)
         delete("/users/#{user_id}/groups/#{group_id}")
+      end
+
+      def group_management_permissions(group_id)
+        get("/groups/#{group_id}/management/permissions")
+      end
+
+      def update_group_management_permissions(group_id, permissions)
+        put("/groups/#{group_id}/management/permissions", permissions)
       end
     end
   end

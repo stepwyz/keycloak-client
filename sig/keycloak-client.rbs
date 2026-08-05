@@ -52,11 +52,13 @@ module KeycloakClient
 
     def get: (untyped path, ?::Hash[untyped, untyped] params, ?::Hash[untyped, untyped] headers, ?admin_scoped: bool) -> untyped
 
-    def put: (untyped path, ?::Hash[untyped, untyped] body, ?::Hash[untyped, untyped] headers, ?admin_scoped: bool) -> untyped
+    def put: (untyped path, ?::Hash[untyped, untyped] body, ?::Hash[untyped, untyped] headers, ?params: untyped?, ?admin_scoped: bool) -> untyped
 
-    def post: (untyped path, ?::Hash[untyped, untyped] body, ?::Hash[untyped, untyped] headers, ?admin_scoped: bool) -> untyped
+    def post: (untyped path, ?::Hash[untyped, untyped] body, ?::Hash[untyped, untyped] headers, ?params: untyped?, ?admin_scoped: bool) -> untyped
 
-    def delete: (untyped path, ?::Hash[untyped, untyped] params, ?::Hash[untyped, untyped] headers, ?admin_scoped: bool) -> untyped
+    # A handful of admin endpoints (role composites, for one) take a JSON body
+    # on DELETE, which Faraday only sends when the request is built by block.
+    def delete: (untyped path, ?::Hash[untyped, untyped] params, ?::Hash[untyped, untyped] headers, ?body: untyped?, ?admin_scoped: bool) -> untyped
 
     def form_post: (untyped path, ?::Hash[untyped, untyped] body, ?::Hash[untyped, untyped] headers, ?admin_scoped: bool) -> untyped
 
@@ -153,7 +155,7 @@ module KeycloakClient
 
       def get_client_offline_sessions: (untyped client_uuid) -> untyped
 
-      def register_client_cluster_node: (untyped client_uuid) -> untyped
+      def register_client_cluster_node: (untyped client_uuid, untyped node) -> untyped
 
       def unregister_client_cluster_node: (untyped client_uuid, untyped node) -> untyped
 
@@ -166,6 +168,8 @@ module KeycloakClient
   module Resources
     module Groups
       def groups: (?::Hash[untyped, untyped] params) -> untyped
+
+      def group_count: (?::Hash[untyped, untyped] params) -> untyped
 
       def subgroups: (untyped group_id) -> untyped
 
@@ -184,6 +188,10 @@ module KeycloakClient
       def add_group_member: (untyped group_id, untyped user_id) -> untyped
 
       def remove_group_member: (untyped group_id, untyped user_id) -> untyped
+
+      def group_management_permissions: (untyped group_id) -> untyped
+
+      def update_group_management_permissions: (untyped group_id, untyped permissions) -> untyped
     end
   end
 end
@@ -220,6 +228,18 @@ module KeycloakClient
       def get_organization_member: (untyped organization_id, untyped member_id) -> untyped
 
       def get_user_organizations: (untyped user_id) -> untyped
+
+      # Same data as #get_user_organizations, but scoped under an org the
+      # member already belongs to. Useful when navigating from an org view.
+      def get_organization_member_organizations: (untyped organization_id, untyped member_id) -> untyped
+
+      def organization_identity_providers: (untyped organization_id) -> untyped
+
+      def organization_identity_provider: (untyped organization_id, untyped alias_name) -> untyped
+
+      def add_organization_identity_provider: (untyped organization_id, untyped alias_name) -> untyped
+
+      def remove_organization_identity_provider: (untyped organization_id, untyped alias_name) -> untyped
     end
   end
 end
@@ -293,7 +313,53 @@ module KeycloakClient
 
       def send_verify_email: (untyped user_id) -> untyped
 
+      def execute_actions_email: (untyped user_id, untyped actions, ?client_id: untyped?, ?lifespan: untyped?, ?redirect_uri: untyped?) -> untyped
+
+      def reset_user_password: (untyped user_id, untyped credential) -> untyped
+
+      def logout_user: (untyped user_id) -> untyped
+
+      def impersonate_user: (untyped user_id) -> untyped
+
       def get_user_sessions: (untyped user_id) -> untyped
+
+      def get_user_offline_sessions: (untyped user_id, untyped client_uuid) -> untyped
+
+      def user_groups: (untyped user_id, ?::Hash[untyped, untyped] params) -> untyped
+
+      def user_group_count: (untyped user_id) -> untyped
+
+      def user_consents: (untyped user_id) -> untyped
+
+      def revoke_user_consent: (untyped user_id, untyped client_id) -> untyped
+
+      def user_credentials: (untyped user_id) -> untyped
+
+      def delete_user_credential: (untyped user_id, untyped credential_id) -> untyped
+
+      def move_user_credential_after: (untyped user_id, untyped credential_id, untyped after_credential_id) -> untyped
+
+      def move_user_credential_to_first: (untyped user_id, untyped credential_id) -> untyped
+
+      def update_user_credential_label: (untyped user_id, untyped credential_id, untyped label) -> untyped
+
+      def disable_user_credential_types: (untyped user_id, untyped credential_types) -> untyped
+
+      def configured_user_storage_credential_types: (untyped user_id) -> untyped
+
+      def user_federated_identities: (untyped user_id) -> untyped
+
+      def add_user_federated_identity: (untyped user_id, untyped provider, untyped federated_identity) -> untyped
+
+      def remove_user_federated_identity: (untyped user_id, untyped provider) -> untyped
+
+      def user_unmanaged_attributes: (untyped user_id) -> untyped
+
+      def users_profile: () -> untyped
+
+      def update_users_profile: (untyped profile) -> untyped
+
+      def users_profile_metadata: () -> untyped
     end
   end
 end

@@ -53,8 +53,8 @@ module KeycloakClient
         get("/clients/#{client_uuid}/offline-sessions")
       end
 
-      def register_client_cluster_node(client_uuid)
-        post("/clients/#{client_uuid}/nodes")
+      def register_client_cluster_node(client_uuid, node)
+        post("/clients/#{client_uuid}/nodes", { node: node })
       end
 
       def unregister_client_cluster_node(client_uuid, node)

@@ -68,25 +68,29 @@ module KeycloakClient
       @conn.get(path, params, headers).body
     end
 
-    def put(path, body = {}, headers = {}, admin_scoped: true)
+    def put(path, body = {}, headers = {}, params: nil, admin_scoped: true)
       authorize_if_needed
       path = "/realms/#{current_realm}#{path}" if current_realm
       path = "/admin#{path}" if admin_scoped
+      path = "#{path}?#{URI.encode_www_form(params.compact)}" if params&.compact&.any?
       @conn.put(path, body, headers).body
     end
 
-    def post(path, body = {}, headers = {}, admin_scoped: true)
+    def post(path, body = {}, headers = {}, params: nil, admin_scoped: true)
       authorize_if_needed
       path = "/realms/#{current_realm}#{path}" if current_realm
       path = "/admin#{path}" if admin_scoped
+      path = "#{path}?#{URI.encode_www_form(params.compact)}" if params&.compact&.any?
       @conn.post(path, body, headers).body
     end
 
-    def delete(path, params = {}, headers = {}, admin_scoped: true)
+    # A handful of admin endpoints (role composites, for one) take a JSON body
+    # on DELETE, which Faraday only sends when the request is built by block.
+    def delete(path, params = {}, headers = {}, body: nil, admin_scoped: true)
       authorize_if_needed
       path = "/realms/#{current_realm}#{path}" if current_realm
       path = "/admin#{path}" if admin_scoped
-      @conn.delete(path, params, headers).body
+      @conn.delete(path, params, headers) { |req| req.body = body unless body.nil? }.body
     end
 
     def form_post(path, body = {}, headers = {}, admin_scoped: true)

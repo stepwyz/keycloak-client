@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Must be loaded before the gem itself so SimpleCov sees every line.
+require_relative 'support/coverage'
+
 require "debug/prelude"
 require "dotenv"
 Dotenv.load('.env.local', '.env')

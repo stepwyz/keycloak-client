@@ -55,6 +55,13 @@ RSpec.describe 'live: Organizations resource', :integration do
     admin.delete_user(user[:id]) if user
   end
 
+  it 'invites an address with no account yet' do
+    skip 'set KEYCLOAK_SMTP_PASSWORD to run' unless ENV['KEYCLOAK_SMTP_PASSWORD']
+
+    expect { admin.invite_user(org[:id], "invitee-#{SecureRandom.hex(4)}@example.com") }
+      .to_not raise_error
+  end
+
   it "lists the organizations a user belongs to" do
     username = "mem-#{SecureRandom.hex(4)}"
     admin.create_user(username: username, enabled: true, email: "#{username}@example.com")
@@ -64,7 +71,46 @@ RSpec.describe 'live: Organizations resource', :integration do
     result = admin.get_user_organizations(user[:id])
     expect(result).to be_an(Array)
     expect(result.map { |o| o[:alias] }).to include(org_alias)
+
+    scoped = admin.get_organization_member_organizations(org[:id], user[:id])
+    expect(scoped.map { |o| o[:alias] }).to include(org_alias)
   ensure
     admin.delete_user(user[:id]) if user
+  end
+
+  describe 'organization identity providers' do
+    let!(:idp_alias) { "idp-#{SecureRandom.hex(4)}" }
+
+    before do
+      # Identity providers must exist at the realm level before linking to an org.
+      admin.post('/identity-provider/instances', {
+        alias: idp_alias,
+        providerId: 'oidc',
+        enabled: true,
+        config: {
+          clientId: 'placeholder',
+          clientSecret: 'placeholder',
+          authorizationUrl: 'https://example.com/oauth/authorize',
+          tokenUrl: 'https://example.com/oauth/token'
+        }
+      })
+    end
+
+    after { admin.delete("/identity-provider/instances/#{idp_alias}") rescue nil }
+
+    it 'links, lists, reads, and unlinks an identity provider' do
+      expect(admin.organization_identity_providers(org[:id])).to eq([])
+
+      admin.add_organization_identity_provider(org[:id], idp_alias)
+
+      linked = admin.organization_identity_providers(org[:id])
+      expect(linked.map { |i| i[:alias] }).to include(idp_alias)
+
+      fetched = admin.organization_identity_provider(org[:id], idp_alias)
+      expect(fetched[:alias]).to eq(idp_alias)
+
+      expect { admin.remove_organization_identity_provider(org[:id], idp_alias) }.to_not raise_error
+      expect(admin.organization_identity_providers(org[:id])).to eq([])
+    end
   end
 end
