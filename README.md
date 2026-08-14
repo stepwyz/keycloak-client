@@ -32,11 +32,28 @@ KeycloakClient.configure do |config|
   config.realm         = ENV.fetch('KEYCLOAK_REALM')         # default realm for new clients
   config.client_id     = ENV.fetch('KEYCLOAK_CLIENT_ID')     # service-account client
   config.client_secret = ENV.fetch('KEYCLOAK_CLIENT_SECRET')
+  config.timeout       = 10
+  config.open_timeout  = 2
+  config.mail_timeout  = 30
 end
 ```
 
 Each setting falls back to the matching `KEYCLOAK_*` env var when the block
 leaves it unset. In a Rails app, put the block in an initializer.
+
+`timeout` (10s) and `open_timeout` (2s) apply to that client's own Faraday
+connection — the gem never touches `Faraday.default_connection_options`, so
+nothing else in the host application inherits them. `mail_timeout` (30s)
+replaces `timeout` on the three send-email endpoints, which perform the SMTP
+handshake synchronously and legitimately run longer than an ordinary admin
+call. A client created with a `timeout` above `mail_timeout` keeps the higher
+value for mail too.
+
+Override per client when one Keycloak is slower than the rest:
+
+```ruby
+slow = KeycloakClient::AdminClient.new(timeout: 20, open_timeout: 5)
+```
 
 ## Usage
 

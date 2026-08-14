@@ -26,16 +26,16 @@ module KeycloakClient
       end
 
       def send_reset_password_email(user_id)
-        put("/users/#{user_id}/reset-password-email")
+        put("/users/#{user_id}/reset-password-email", {}, {}, timeout: mail_timeout)
       end
 
       def send_verify_email(user_id)
-        put("/users/#{user_id}/send-verify-email")
+        put("/users/#{user_id}/send-verify-email", {}, {}, timeout: mail_timeout)
       end
 
       def execute_actions_email(user_id, actions, client_id: nil, lifespan: nil, redirect_uri: nil)
         put("/users/#{user_id}/execute-actions-email", actions, {},
-            params: { client_id:, lifespan:, redirect_uri: })
+            params: { client_id:, lifespan:, redirect_uri: }, timeout: mail_timeout)
       end
 
       def reset_user_password(user_id, credential)

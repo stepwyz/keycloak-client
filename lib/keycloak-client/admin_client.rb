@@ -12,12 +12,17 @@ module KeycloakClient
     include Resources::Groups
     include Resources::ClientScopes
 
-    def initialize(realm: nil, username: nil, password: nil)
+    def initialize(realm: nil, username: nil, password: nil, timeout: nil, open_timeout: nil)
       @realm = realm || KeycloakClient.config.realm
       @realm_stack = [ @realm ]
       @username = username
       @password = password
-      @conn = Faraday.new(url: KeycloakClient.config.host) do |faraday|
+      @timeout = timeout || KeycloakClient.config.timeout
+      request_options = {
+        timeout: @timeout,
+        open_timeout: open_timeout || KeycloakClient.config.open_timeout
+      }
+      @conn = Faraday.new(url: KeycloakClient.config.host, request: request_options) do |faraday|
         faraday.request :authorization, 'Bearer', -> { @token }
         faraday.response :raise_error
         faraday.request :json
@@ -68,12 +73,12 @@ module KeycloakClient
       @conn.get(path, params, headers).body
     end
 
-    def put(path, body = {}, headers = {}, params: nil, admin_scoped: true)
+    def put(path, body = {}, headers = {}, params: nil, timeout: nil, admin_scoped: true)
       authorize_if_needed
       path = "/realms/#{current_realm}#{path}" if current_realm
       path = "/admin#{path}" if admin_scoped
       path = "#{path}?#{URI.encode_www_form(params.compact)}" if params&.compact&.any?
-      @conn.put(path, body, headers).body
+      @conn.put(path, body, headers) { |req| req.options.timeout = timeout if timeout }.body
     end
 
     def post(path, body = {}, headers = {}, params: nil, admin_scoped: true)
@@ -116,6 +121,10 @@ module KeycloakClient
     end
 
   private
+
+    def mail_timeout
+      [ @timeout, KeycloakClient.config.mail_timeout ].max
+    end
 
     attr_reader :token, :token_expires_at, :username, :password
   end
